@@ -1,0 +1,48 @@
+# encoding: UTF-8
+
+FROM <%= ENV.fetch('FROM') %>
+MAINTAINER The Blue Beluga <admin@bluebeluga.io>
+
+LABEL name="kafka"
+LABEL description="Alpine Linux Base with Kafka"
+LABEL version="<%= ENV.fetch('KAFKA_VERSION') %>"
+LABEL git_revision="<%= ENV.fetch('GIT_REVISION') %>"
+
+ENV SCALA_VERSION <%= ENV.fetch('SCALA_VERSION') %>
+ENV KAFKA_VERSION <%= ENV.fetch('KAFKA_VERSION') %>
+ENV KAFKA_SHA256 <%= ENV.fetch('KAFKA_SHA256') %>
+ENV KAFKA_HOME <%= ENV.fetch('KAFKA_HOME') %>
+ENV KAFKA_USER <%= ENV.fetch('KAFKA_USER') %>
+ENV KAFKA_GROUP <%= ENV.fetch('KAFKA_GROUP') %>
+
+RUN apk add --no-cache --virtual=build-dependencies curl jq gnupg tar patch && \
+    eval $(gpg-agent --daemon) && \
+    MIRROR=`curl -sS https://www.apache.org/dyn/closer.cgi\?as_json\=1 | jq -r '.preferred'` && \
+    curl -sSLO "${MIRROR}/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz" && \
+    curl -sSLO http://www.apache.org/dist/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz.asc && \
+    curl -sSL  https://dist.apache.org/repos/dist/release/kafka/KEYS | gpg -v --import - && \
+    gpg -v --verify kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz.asc && \
+    echo "${KAFKA_SHA256}  kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz" | sha256sum -c - && \
+    tar -xzf "kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz" && \
+    rm "kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz" \
+       "kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz.asc" && \
+    mv "kafka_${SCALA_VERSION}-${KAFKA_VERSION}" "${KAFKA_HOME}" && \
+    apk del build-dependencies && \
+    rm -rf /var/cache/apk/*
+
+WORKDIR "${KAFKA_HOME}"
+RUN mkdir data logs
+
+COPY files/log4j.properties $KAFKA_HOME/config/log4j.properties
+
+RUN addgroup -S "${KAFKA_GROUP}" && \
+    adduser "${KAFKA_USER}" -D -S -h "${KAFKA_HOME}" -G "${KAFKA_GROUP}" -g 'Kafka User' && \
+    chown -R "${KAFKA_USER}:${KAFKA_GROUP}" "${KAFKA_HOME}"
+
+USER "${KAFKA_USER}"
+EXPOSE 9092
+VOLUME ["${KAFKA_HOME}/data","${KAFKA_HOME}/logs","${KAFKA_HOME}/config"]
+
+COPY files/entrypoint.sh /
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["start"]
