@@ -3,17 +3,18 @@
 FROM <%= ENV.fetch('FROM') %>
 MAINTAINER The Blue Beluga <admin@bluebeluga.io>
 
-LABEL name="kafka"
-LABEL description="Alpine Linux Base with Kafka"
-LABEL version="<%= ENV.fetch('KAFKA_VERSION') %>"
-LABEL git_revision="<%= ENV.fetch('GIT_REVISION') %>"
+LABEL vendor="The Blue Beluga Company"
+LABEL io.bluebeluga.kafka.description="Kafka"
+LABEL io.bluebeluga.kafka.version="<%= ENV.fetch('TAG') %>"
+LABEL io.bluebeluga.kafka.git-revision="<%= ENV.fetch('GIT_REVISION') %>"
+LABEL io.bluebeluga.kafka.release-date="<%= Time.now.strftime('%B %d, %Y %H:%M') %>"
 
-ENV SCALA_VERSION <%= ENV.fetch('SCALA_VERSION') %>
-ENV KAFKA_VERSION <%= ENV.fetch('KAFKA_VERSION') %>
-ENV KAFKA_SHA256 <%= ENV.fetch('KAFKA_SHA256') %>
-ENV KAFKA_HOME <%= ENV.fetch('KAFKA_HOME') %>
-ENV KAFKA_USER <%= ENV.fetch('KAFKA_USER') %>
-ENV KAFKA_GROUP <%= ENV.fetch('KAFKA_GROUP') %>
+ENV SCALA_VERSION=<%= ENV.fetch('SCALA_VERSION') %>
+ENV KAFKA_VERSION=<%= ENV.fetch('KAFKA_VERSION') %>
+ENV KAFKA_SHA256=<%= ENV.fetch('KAFKA_SHA256') %>
+ENV KAFKA_HOME=<%= ENV.fetch('KAFKA_HOME') %>
+ENV KAFKA_USER=<%= ENV.fetch('KAFKA_USER') %>
+ENV KAFKA_GROUP=<%= ENV.fetch('KAFKA_GROUP') %>
 
 RUN apk add --no-cache --virtual=build-dependencies curl jq gnupg tar patch && \
     eval $(gpg-agent --daemon) && \

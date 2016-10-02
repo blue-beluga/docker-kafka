@@ -5,4 +5,3 @@ export KAFKA_SHA256=3ba1967ee88c7f364964c8a8fdf6f5075dcf7572f8c9eb74f0285b308363
 export KAFKA_HOME = /kafka
 export KAFKA_USER = kafka
 export KAFKA_GROUP = kafka
-export FROM = bluebeluga/jdk:8
